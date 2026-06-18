@@ -1,26 +1,48 @@
 import { useState, useEffect, useRef } from "react";
-import { TopBar } from "./components/Interface";
+import { useBraceStore } from "@/store/useBraceStore";
+import NavRail from "@/components/Layout/NavRail";
+import TopBar from "@/components/Layout/TopBar";
+import RunStrip from "@/components/Layout/RunStrip";
+import ToastContainer from "@/components/Shared/ToastContainer";
+import ApprovalModal from "@/components/Shared/ApprovalModal";
+import HomePage from "@/components/Pages/HomePage";
+import SwarmPage from "@/components/Pages/SwarmPage";
+import MissionsPage from "@/components/Pages/MissionsPage";
+import MemoryPage from "@/components/Pages/MemoryPage";
+import ToolsPage from "@/components/Pages/ToolsPage";
+import ActivityPage from "@/components/Pages/ActivityPage";
+import SettingsPage from "@/components/Pages/SettingsPage";
+import { AnimatePresence, motion } from "framer-motion";
+
+// OS / Voice integrations
 import { VoiceOrb } from "./voice/VoiceOrb";
 import type { OrbState } from "./os/BraceOrb";
-import { CodingWorkspace, ResearchWorkspace, ClientWorkspace, IntegrationWorkspace } from "./os/workspaces";
-import { OsWorkspace } from "./os/OsWorkspace";
-import type { WorkspaceType } from "./os/WorkspaceLayout";
-import { ExecutiveBriefing } from "./os/ExecutiveBriefing";
 import { ChatBubble, ChatInput } from "./components/Interface";
 import { CommandPalette } from "./components/CommandPalette";
 import { FirstRunExperience } from "./components/FirstRunExperience";
 import { braceClient } from "./lib/braceClient";
-import type { ChatMessage, SystemInfo } from "./types";
+import type { ChatMessage } from "./types";
 import { useVoiceAgent } from "./voice/useVoiceAgent";
 
+const PAGES: Record<string, React.ComponentType<any>> = {
+  home: HomePage,
+  swarm: SwarmPage,
+  missions: MissionsPage,
+  memory: MemoryPage,
+  tools: ToolsPage,
+  activity: ActivityPage,
+  settings: SettingsPage,
+};
+
 export default function App() {
-  const [workspace, setWorkspace] = useState<WorkspaceType>("general");
+  const { currentPage } = useBraceStore();
+  const PageComponent = PAGES[currentPage] || HomePage;
+
+  // Voice & Chat State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-  const [assistantStatus, setAssistantStatus] = useState<any | null>(null);
-
+  const [showChat, setShowChat] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,17 +57,15 @@ export default function App() {
       })
       .catch((e) => console.warn("Failed to load chat history:", e));
 
-    // Periodically load system diagnostics
     const fetchSys = () => {
       braceClient.systemInfo()
-        .then((res: any) => {
-          if (res.ok && res.info) setSystemInfo(res.info);
-        })
-        .catch((e) => console.debug("System info access blocked:", e.message));
+        .then(() => {
+          // do nothing, removed systemInfo
+        }).catch((e) => console.debug("System info access blocked:", e.message));
 
       braceClient.assistantStatus()
-        .then((res: any) => {
-          if (res) setAssistantStatus(res);
+        .then(() => {
+          // do nothing, removed assistantStatus
         })
         .catch((e) => console.debug("Assistant status request failed:", e.message));
     };
@@ -61,21 +81,7 @@ export default function App() {
     }
   }, [messages]);
 
-  // Integrate Voice Agent for real STT/TTS pipeline and streaming state management
   const handleCommand = async (text: string) => {
-    // Automatically morph workspaces depending on query content
-    if (text.startsWith("/code") || text.toLowerCase().includes("code") || text.toLowerCase().includes("repo")) {
-      setWorkspace("coding");
-    } else if (text.startsWith("/research") || text.toLowerCase().includes("research") || text.toLowerCase().includes("web")) {
-      setWorkspace("research");
-    } else if (text.startsWith("/client") || text.toLowerCase().includes("client") || text.toLowerCase().includes("invoice")) {
-      setWorkspace("client");
-    } else if (text.startsWith("/integration") || text.toLowerCase().includes("integration") || text.toLowerCase().includes("n8n")) {
-      setWorkspace("integration");
-    } else if (text.startsWith("/os") || text.startsWith("/agents") || text.toLowerCase().includes("telemetry") || text.toLowerCase().includes("system dashboard")) {
-      setWorkspace("os");
-    }
-
     setLoading(true);
     try {
       const result: any = await braceClient.assistantChat({ message: text });
@@ -91,9 +97,7 @@ export default function App() {
     }
   };
 
-  const addMessage = (message: ChatMessage) => {
-    setMessages((prev) => [...prev, message]);
-  };
+  const addMessage = (message: ChatMessage) => setMessages((prev) => [...prev, message]);
 
   const voiceAgent = useVoiceAgent({
     sendCommand: handleCommand,
@@ -112,7 +116,6 @@ export default function App() {
     try {
       const response = await handleCommand(text);
       setMessages((prev) => [...prev, { id: Date.now(), role: "assistant", text: response, source: "agent" }]);
-      // Stream output state to Voice Orb
       voiceAgent.speakText(response, "assistant-response");
     } catch (e) {
       setMessages((prev) => [
@@ -122,111 +125,121 @@ export default function App() {
     }
   };
 
-  // Sync VoiceAgent state to Orb State
   const activeOrbState: OrbState = 
     voiceAgent.orbState === "listening" ? "listening" :
+    voiceAgent.orbState === "transcribing" ? "transcribing" :
     voiceAgent.orbState === "thinking" ? "thinking" :
     voiceAgent.orbState === "speaking" ? "speaking" :
     voiceAgent.orbState === "error" ? "error" :
     loading ? "thinking" : "idle";
 
-  // Build JSX for panels inside workspace
-  const chatPanel = (
-    <div className="flex flex-col h-full hud-panel-strong border-cyan-400/20 overflow-hidden shadow-2xl relative">
-      <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"></div>
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {messages.map((msg) => (
-          <ChatBubble key={msg.id} message={msg} />
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="hud-panel border-l-2 border-l-cyan-400 p-4 text-cyan-200 text-sm animate-pulse flex items-center gap-3 font-mono">
-              <div className="w-2 h-2 bg-cyan-400"></div>
-              PROC.DATA...
-            </div>
-          </div>
-        )}
-        <div ref={endRef} />
-      </div>
-      
-      {/* Search Input bar sticky at bottom of chat */}
-      <div className="p-4 bg-black/20 border-t border-white/5 backdrop-blur-lg">
-        <ChatInput
-          value={input}
-          onChange={setInput}
-          onSend={handleSend}
-          isProcessing={loading}
-          onVoice={() => voiceAgent.orbState === "listening" ? voiceAgent.stopListening() : voiceAgent.startListening()}
-        />
-      </div>
-    </div>
-  );
-
   return (
-    <div className="flex h-screen w-screen overflow-hidden text-slate-200 font-mono">
+    <div
+      className="grid h-screen w-screen overflow-hidden text-slate-200 font-sans"
+      style={{
+        gridTemplateColumns: "64px 1fr",
+        background: `
+          radial-gradient(ellipse at top left, rgba(34,211,238,0.04) 0%, transparent 50%),
+          radial-gradient(ellipse at bottom right, rgba(245,158,11,0.03) 0%, transparent 50%),
+          var(--bg-base)`,
+      }}
+    >
       <FirstRunExperience />
       <CommandPalette />
-      <div className="flex flex-1 flex-col relative z-10 w-full">
-        <TopBar
-          assistantStatus={assistantStatus}
-          hasGeminiKey={true}
-          micActive={activeOrbState === "listening" || activeOrbState === "transcribing"}
-          systemInfo={systemInfo}
-          runtimeLabel={`B.R.A.C.E SYS // ${workspace.toUpperCase()}`}
-        />
+      
+      {/* Left Navigation Rail */}
+      <NavRail />
 
-      {/* Main Container */}
-      <main className="relative z-10 w-full max-w-6xl mx-auto px-6 py-8 flex flex-col items-center justify-between min-h-[calc(100vh-64px)] pb-12">
-        {workspace === "general" ? (
-          <>
-            {/* Top time-aware greeting */}
-            <div className="text-center mt-10">
-              <h1 className="text-4xl font-display font-light tracking-wide text-white drop-shadow-xl">
-                Good evening, <span className="font-medium bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-fuchsia-400">Yash</span>.
-              </h1>
-              <p className="text-xs text-cyan-400 mt-3 uppercase tracking-[0.3em] font-mono font-bold drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
-                SYSTEM ONLINE • JARVIS SECURE NODE
-              </p>
-            </div>
+      {/* Main Content */}
+      <div className="grid overflow-hidden relative" style={{ gridTemplateRows: "44px 1fr auto" }}>
+        {/* Top Status Bar */}
+        <TopBar />
 
-            {/* Central Assistant Presence: The Orb */}
-            <div className="my-10 flex items-center justify-center">
-              <VoiceOrb 
-                state={activeOrbState} 
-                volumeLevel={voiceAgent.volumeLevel} 
-                onClick={() => voiceAgent.orbState === "listening" ? voiceAgent.stopListening() : voiceAgent.startListening()} 
-              />
-            </div>
+        {/* Workspace */}
+        <main className="overflow-hidden relative flex">
+          <div className="flex-1 overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentPage}
+                className="h-full"
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.2 }}
+              >
+                <PageComponent 
+                  voiceAgent={voiceAgent} 
+                  activeOrbState={activeOrbState}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-            {/* Briefing Panel */}
-            <div className="w-full flex justify-center mb-10 z-10">
-              <ExecutiveBriefing />
-            </div>
+          {/* Floating Global VoiceOrb */}
+          <div className="absolute bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+            <VoiceOrb 
+              state={activeOrbState} 
+              volumeLevel={voiceAgent.volumeLevel} 
+              onClick={() => {
+                setShowChat(true);
+                voiceAgent.orbState === "listening" ? voiceAgent.stopListening() : voiceAgent.startListening();
+              }} 
+            />
+          </div>
 
-            {/* Global Search / Command Bar */}
-            <div className="w-full max-w-2xl hud-panel-strong rounded-none border-x-4 border-x-cyan-400 p-2 backdrop-blur-2xl transition-all duration-300 shadow-[0_0_20px_rgba(0,255,255,0.1)]">
-              <ChatInput
-                value={input}
-                onChange={setInput}
-                onSend={handleSend}
-                isProcessing={loading}
-                onVoice={() => voiceAgent.orbState === "listening" ? voiceAgent.stopListening() : voiceAgent.startListening()}
-              />
-            </div>
-          </>
-        ) : workspace === "coding" ? (
-          <CodingWorkspace chatPanel={chatPanel} onClose={() => setWorkspace("general")} />
-        ) : workspace === "research" ? (
-          <ResearchWorkspace chatPanel={chatPanel} onClose={() => setWorkspace("general")} />
-        ) : workspace === "client" ? (
-          <ClientWorkspace chatPanel={chatPanel} onClose={() => setWorkspace("general")} />
-        ) : workspace === "integration" ? (
-          <IntegrationWorkspace chatPanel={chatPanel} onClose={() => setWorkspace("general")} />
-        ) : workspace === "os" ? (
-          <OsWorkspace chatPanel={chatPanel} onClose={() => setWorkspace("general")} />
-        ) : null}
-      </main>
+          {/* Chat Side Panel Slide-in */}
+          <AnimatePresence>
+            {showChat && (
+              <motion.div 
+                initial={{ x: "100%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: "100%", opacity: 0 }}
+                className="absolute top-0 right-0 h-full w-[400px] z-40 bg-[var(--bg-panel)] border-l border-[var(--hairline)] flex flex-col shadow-2xl backdrop-blur-xl"
+              >
+                <div className="flex justify-between items-center p-4 border-b border-[var(--hairline)] bg-[var(--bg-elev-1)]">
+                  <h2 className="text-sm font-semibold tracking-wider text-cyan-400">BRACE INTERLINK</h2>
+                  <button onClick={() => setShowChat(false)} className="text-gray-400 hover:text-white transition-colors">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-sm">
+                  {messages.map((msg) => (
+                    <ChatBubble key={msg.id} message={msg} />
+                  ))}
+                  {loading && (
+                    <div className="flex justify-start">
+                      <div className="border-l-2 border-l-cyan-400 p-2 text-cyan-200 text-xs animate-pulse flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-cyan-400"></div>
+                        PROC.DATA...
+                      </div>
+                    </div>
+                  )}
+                  <div ref={endRef} />
+                </div>
+
+                <div className="p-4 bg-[var(--bg-elev-1)] border-t border-[var(--hairline)]">
+                  <ChatInput
+                    value={input}
+                    onChange={setInput}
+                    onSend={handleSend}
+                    isProcessing={loading}
+                    onVoice={() => voiceAgent.orbState === "listening" ? voiceAgent.stopListening() : voiceAgent.startListening()}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+        </main>
+
+        {/* Bottom Run Strip */}
+        <RunStrip />
       </div>
+
+      {/* Overlays */}
+      <ApprovalModal />
+      <ToastContainer />
     </div>
   );
 }

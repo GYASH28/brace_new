@@ -1,16 +1,25 @@
-const initialKeyPool = [
-  { provider: "gemini", model: "gemini-2.5-flash", apiKey: "AQ.Ab8RN6LL-Gr-hMzp3GMwBVBQE-BseeRttQHNVslXoAtwG25r3Q" },
-  { provider: "nvidia", model: "nvidia/llama-3.1-nemotron-70b-instruct", apiKey: "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" },
-  { provider: "nvidia", model: "meta/llama-3.3-70b-instruct", apiKey: "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" },
-  { provider: "nvidia", model: "deepseek-ai/deepseek-r1", apiKey: "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" },
-  { provider: "nvidia", model: "Qwen/Qwen2.5-72B-Instruct", apiKey: "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" },
-  { provider: "nvidia", model: "minimax/minimax-v1", apiKey: "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" },
-  { provider: "nvidia", model: "nvidia/llama-3.1-nemotron-70b-instruct", apiKey: "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" },
-];
+function envKeyPool(env = process.env) {
+  const keys = [];
+  if (env.GEMINI_API_KEY || env.BRACE_GEMINI_API_KEY) {
+    keys.push({
+      provider: "gemini",
+      model: env.GEMINI_MODEL || "gemini-2.5-flash",
+      apiKey: env.GEMINI_API_KEY || env.BRACE_GEMINI_API_KEY,
+    });
+  }
+  if (env.NVIDIA_API_KEY) {
+    keys.push({
+      provider: "nvidia",
+      model: env.NVIDIA_MODEL || "meta/llama-3.1-70b-instruct",
+      apiKey: env.NVIDIA_API_KEY,
+    });
+  }
+  return keys;
+}
 
 class KeyManager {
-  constructor() {
-    this.pool = initialKeyPool.map((k, index) => ({
+  constructor(initialKeyPool = envKeyPool()) {
+    this.pool = initialKeyPool.filter((k) => k.apiKey).map((k, index) => ({
       ...k,
       id: `${k.provider}-${k.model}-${index}`,
       rateLimitedUntil: 0,
@@ -66,4 +75,4 @@ class KeyManager {
 
 const globalKeyManager = new KeyManager();
 
-module.exports = { KeyManager, globalKeyManager };
+module.exports = { KeyManager, envKeyPool, globalKeyManager };

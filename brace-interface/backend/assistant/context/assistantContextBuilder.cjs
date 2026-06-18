@@ -27,12 +27,17 @@ function normalizeMemory(memory, source) {
   };
 }
 
-async function readLocalMemorySnapshot(memoryManager) {
+function isPromiseLike(value) {
+  return value && typeof value.then === "function";
+}
+
+function readLocalMemorySnapshot(memoryManager) {
   if (!memoryManager?.listMemories) return null;
   const cacheKey = memoryManager;
   const filePath = memoryManager.filePath;
   if (!filePath) {
-    const memories = await memoryManager.listMemories();
+    const memories = memoryManager.listMemories();
+    if (isPromiseLike(memories)) return [];
     return Array.isArray(memories) ? memories : [];
   }
   let signature = "";
@@ -44,16 +49,17 @@ async function readLocalMemorySnapshot(memoryManager) {
   }
   const cached = localMemoryCache.get(cacheKey);
   if (cached && cached.signature === signature) return cached.memories;
-  const memories = await memoryManager.listMemories();
+  const memories = memoryManager.listMemories();
+  if (isPromiseLike(memories)) return [];
   const safeMemories = Array.isArray(memories) ? memories : [];
   localMemoryCache.set(cacheKey, { signature, memories: safeMemories });
   return safeMemories;
 }
 
-async function searchLocalMemories(memoryManager, message, limit) {
+function searchLocalMemories(memoryManager, message, limit) {
   if (!memoryManager) return [];
   const terms = tokenize(message);
-  const snapshot = await readLocalMemorySnapshot(memoryManager);
+  const snapshot = readLocalMemorySnapshot(memoryManager);
   if (snapshot) {
     const candidates = terms.length
       ? snapshot.filter((memory) => {
@@ -66,11 +72,18 @@ async function searchLocalMemories(memoryManager, message, limit) {
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
   }
-  const results = await memoryManager.searchMemories?.(message || "") || [];
+  const results = memoryManager.searchMemories?.(message || "") || [];
+  if (isPromiseLike(results)) return [];
   return Array.isArray(results) ? results.slice(0, limit) : [];
 }
 
-async function buildAssistantContext({
+function safeSearch(adapter, methodName, ...args) {
+  const result = adapter?.[methodName]?.(...args) || [];
+  if (isPromiseLike(result)) return [];
+  return Array.isArray(result) ? result : [];
+}
+
+function buildAssistantContext({
   state = {},
   memoryManager,
   obsidianMemory,
@@ -82,9 +95,9 @@ async function buildAssistantContext({
 } = {}) {
   const terms = tokenize(message);
   const perSourceLimit = Math.max(maxMemories, Math.min(maxMemories * 3, 30));
-  const local = await searchLocalMemories(memoryManager, message, perSourceLimit);
-  const obsidian = await (obsidianMemory?.search?.(message || "", { limit: perSourceLimit }) || []);
-  const firebase = await (firebaseMemory?.searchMemories?.(message || "", { limit: perSourceLimit }) || []);
+  const local = searchLocalMemories(memoryManager, message, perSourceLimit);
+  const obsidian = safeSearch(obsidianMemory, "search", message || "", { limit: perSourceLimit });
+  const firebase = safeSearch(firebaseMemory, "searchMemories", message || "", { limit: perSourceLimit });
   const seen = new Set();
   const normalized = [];
 

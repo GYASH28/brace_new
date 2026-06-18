@@ -38,7 +38,7 @@ function defaultBrainPath(repoRoot, env = {}) {
 
 function buildAssistantConfig({ env = process.env, settings = {}, paths = {} } = {}) {
   const repoRoot = paths.repoRoot || path.resolve(__dirname, "..", "..", "..", "..");
-  const provider = settings.aiProvider || env.AI_PROVIDER || env.BRACE_AI_PROVIDER || "nvidia";
+  const provider = settings.aiProvider || env.AI_PROVIDER || env.BRACE_AI_PROVIDER || "gemini";
   const storedGeminiKey = savedSecret(settings.geminiKey) || savedSecret(settings.apiKey);
   const geminiApiKey = first(env.GEMINI_API_KEY, env.BRACE_GEMINI_API_KEY, storedGeminiKey);
   

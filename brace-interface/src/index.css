@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --app-bg: #030014;
@@ -543,3 +545,197 @@ select:focus-visible {
 .status-tile-warn .status-tile-icon { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
 .status-tile-muted .status-tile-icon { background: rgba(148, 163, 184, 0.1); color: #cbd5e1; }
 
+
+
+
+
+
+@layer base {
+  :root {
+    /* BRACE Agent OS — Design Tokens */
+    /* Base palette — graphite + off-white */
+    --bg-base: #0a0d12;
+    --bg-panel: #11151c;
+    --bg-elev-1: #161b24;
+    --bg-elev-2: #1c2230;
+    --bg-elev-3: #232a3a;
+    --hairline: rgba(255,255,255,0.06);
+    --hairline-strong: rgba(255,255,255,0.12);
+    --hairline-amber: rgba(245,158,11,0.35);
+    --hairline-cyan: rgba(34,211,238,0.35);
+
+    /* Text */
+    --text-primary: #e7e5dc;
+    --text-secondary: #b8bcc8;
+    --text-muted: #6b7180;
+    --text-faint: #4a4f5c;
+
+    /* Accents */
+    --accent-cyan: #22d3ee;
+    --accent-cyan-dim: #0891b2;
+    --accent-amber: #f59e0b;
+    --accent-amber-dim: #b45309;
+    --accent-rose: #f43f5e;
+    --accent-emerald: #10b981;
+    --accent-violet: #a78bfa;
+
+    /* Agent status colors */
+    --status-idle: #6b7180;
+    --status-active: #22d3ee;
+    --status-suspended: #f59e0b;
+    --status-hibernated: #a78bfa;
+    --status-error: #f43f5e;
+
+    /* Task state colors */
+    --task-pending: #6b7180;
+    --task-running: #22d3ee;
+    --task-blocked: #f43f5e;
+    --task-review: #f59e0b;
+    --task-done: #10b981;
+    --task-failed: #f43f5e;
+
+    /* Typography */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
+    --font-mono: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+
+    /* Radii */
+    --r-sm: 4px;
+    --r-md: 6px;
+    --r-lg: 10px;
+    --r-xl: 14px;
+
+    /* Motion */
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --dur-fast: 120ms;
+    --dur-med: 240ms;
+    --dur-slow: 480ms;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+    --shadow-glow-cyan: 0 0 24px rgba(34,211,238,0.25);
+    --shadow-glow-amber: 0 0 24px rgba(245,158,11,0.3);
+    --shadow-glow-rose: 0 0 24px rgba(244,63,94,0.35);
+
+    /* shadcn overrides */
+    --background: 220 20% 4%;
+    --foreground: 40 10% 90%;
+    --card: 220 18% 8%;
+    --card-foreground: 40 10% 90%;
+    --popover: 220 18% 8%;
+    --popover-foreground: 40 10% 90%;
+    --primary: 187 80% 53%;
+    --primary-foreground: 220 20% 4%;
+    --secondary: 220 15% 14%;
+    --secondary-foreground: 40 10% 90%;
+    --muted: 220 15% 14%;
+    --muted-foreground: 220 8% 46%;
+    --accent: 220 15% 14%;
+    --accent-foreground: 40 10% 90%;
+    --destructive: 348 90% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 10% 14%;
+    --input: 220 10% 14%;
+    --ring: 187 80% 53%;
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+    color: inherit;
+    background: transparent;
+    border: none;
+    outline: none;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--hairline-strong);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-faint);
+  }
+}
+
+@layer components {
+  /* Badge styles */
+  .badge-idle {
+    @apply text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider font-medium;
+    background: rgba(107,113,128,0.2);
+    color: var(--text-secondary);
+  }
+  .badge-active {
+    @apply text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider font-medium;
+    background: rgba(34,211,238,0.15);
+    color: var(--accent-cyan);
+  }
+  .badge-running {
+    @apply text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider font-medium;
+    background: rgba(34,211,238,0.15);
+    color: var(--accent-cyan);
+  }
+  .badge-blocked {
+    @apply text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider font-medium;
+    background: rgba(244,63,94,0.15);
+    color: var(--accent-rose);
+  }
+  .badge-review {
+    @apply text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider font-medium;
+    background: rgba(245,158,11,0.15);
+    color: var(--accent-amber);
+  }
+  .badge-done {
+    @apply text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider font-medium;
+    background: rgba(16,185,129,0.15);
+    color: var(--accent-emerald);
+  }
+  .badge-pending {
+    @apply text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider font-medium;
+    background: rgba(107,113,128,0.2);
+    color: var(--text-secondary);
+  }
+
+  /* Priority badges */
+  .priority-high {
+    @apply text-[9px] px-1 py-0.5 rounded uppercase tracking-wider font-semibold;
+    background: rgba(244,63,94,0.15);
+    color: var(--accent-rose);
+  }
+  .priority-medium {
+    @apply text-[9px] px-1 py-0.5 rounded uppercase tracking-wider font-semibold;
+    background: rgba(245,158,11,0.15);
+    color: var(--accent-amber);
+  }
+  .priority-low {
+    @apply text-[9px] px-1 py-0.5 rounded uppercase tracking-wider font-semibold;
+    background: rgba(107,113,128,0.2);
+    color: var(--text-secondary);
+  }
+}

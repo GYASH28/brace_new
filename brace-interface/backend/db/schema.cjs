@@ -1,3 +1,10 @@
+function ensureColumn(db, table, column, definition) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all().map((row) => row.name);
+  if (!columns.includes(column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+
 function runSchemaMigrations(db) {
   // Use a transaction for schema setup
   const transaction = db.transaction(() => {
@@ -24,26 +31,39 @@ function runSchemaMigrations(db) {
     `);
 
     // 3. Tasks (Kanban Board / Operations)
-    // Using DROP TABLE IF EXISTS because the schema significantly changed from the old version
-    db.exec(`DROP TABLE IF EXISTS tasks`);
+    // Additive schema: preserve legacy stateStore fields (`type`) while supporting STUC task fields.
     db.exec(`
-      CREATE TABLE tasks (
+      CREATE TABLE IF NOT EXISTS tasks (
         id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
+        type TEXT,
+        title TEXT,
         description TEXT,
         assigned_agent_id TEXT,
         status TEXT DEFAULT 'pending',
-        payload TEXT NOT NULL,
+        payload TEXT DEFAULT '{}',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(assigned_agent_id) REFERENCES agents(id)
       )
     `);
+    ensureColumn(db, "tasks", "type", "TEXT");
+    ensureColumn(db, "tasks", "title", "TEXT");
+    ensureColumn(db, "tasks", "description", "TEXT");
+    ensureColumn(db, "tasks", "assigned_agent_id", "TEXT");
+    ensureColumn(db, "tasks", "payload", "TEXT DEFAULT '{}'");
+    ensureColumn(db, "tasks", "updated_at", "DATETIME DEFAULT CURRENT_TIMESTAMP");
 
-    // 4. Messages (Conversations & Tool execution history)
-    db.exec(`DROP TABLE IF EXISTS chat_history`);
+    // 4. Messages (Conversations & Tool execution history) plus legacy chat_history.
     db.exec(`
-      CREATE TABLE messages (
+      CREATE TABLE IF NOT EXISTS chat_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS messages (
         id TEXT PRIMARY KEY,
         task_id TEXT,
         sender TEXT NOT NULL,
@@ -57,17 +77,22 @@ function runSchemaMigrations(db) {
     `);
 
     // 5. Memory Nodes (Layer 2)
-    db.exec(`DROP TABLE IF EXISTS memories`);
     db.exec(`
-      CREATE TABLE memory_nodes (
+      CREATE TABLE IF NOT EXISTS memory_nodes (
         id TEXT PRIMARY KEY,
         type TEXT NOT NULL,
+        title TEXT,
         content TEXT NOT NULL,
+        tags TEXT DEFAULT '[]',
+        approved BOOLEAN DEFAULT 1,
         vector_embedding BLOB,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    ensureColumn(db, "memory_nodes", "title", "TEXT");
+    ensureColumn(db, "memory_nodes", "tags", "TEXT DEFAULT '[]'");
+    ensureColumn(db, "memory_nodes", "approved", "BOOLEAN DEFAULT 1");
 
     // 6. Telemetry (Cost & Performance tracking)
     db.exec(`

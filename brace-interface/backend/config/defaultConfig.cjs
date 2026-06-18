@@ -10,8 +10,8 @@ const DATA_DIR_NAME = "_BRACE_DATA";
 
 function defaultSettings() {
   return {
-    aiProvider: process.env.AI_PROVIDER || process.env.BRACE_AI_PROVIDER || "nvidia",
-    model: process.env.NVIDIA_MODEL || process.env.BRACE_MODEL || "meta/llama-3.1-70b-instruct",
+    aiProvider: process.env.AI_PROVIDER || process.env.BRACE_AI_PROVIDER || "gemini",
+    model: process.env.GEMINI_MODEL || process.env.BRACE_MODEL || "gemini-2.5-flash",
     geminiModel: process.env.GEMINI_MODEL || "gemini-2.5-flash",
     geminiFallbackModel: process.env.GEMINI_FALLBACK_MODEL || "gemini-2.5-flash-lite",
     enableLegacyLocalAi: String(process.env.ENABLE_LEGACY_LOCAL_AI || "false").toLowerCase() === "true",

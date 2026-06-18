@@ -3,6 +3,32 @@ const { NvidiaProvider } = require("./nvidiaProvider.cjs");
 const { globalKeyManager } = require("./keyManager.cjs");
 
 function createModelRouter(config) {
+  function configuredKey(preferredProvider) {
+    if (preferredProvider === "nvidia" && config.nvidia?.apiKey) {
+      return {
+        id: "configured-nvidia",
+        provider: "nvidia",
+        apiKey: config.nvidia.apiKey,
+        model: config.nvidia.model || config.model,
+      };
+    }
+    if (preferredProvider === "gemini" && config.gemini?.apiKey) {
+      return {
+        id: "configured-gemini",
+        provider: "gemini",
+        apiKey: config.gemini.apiKey,
+        model: config.gemini.model || config.model,
+      };
+    }
+    return null;
+  }
+
+  function missingKeyError(preferredProvider) {
+    if (preferredProvider === "gemini") return new Error("Gemini API key is missing. Add GEMINI_API_KEY or save a Gemini key in Settings.");
+    if (preferredProvider === "nvidia") return new Error("Nvidia API key is missing. Add NVIDIA_API_KEY or save an Nvidia key in Settings.");
+    return new Error("No API keys available for the selected provider.");
+  }
+
   function createProviderInstance(keyInfo) {
     if (keyInfo.provider === "nvidia") {
       return new NvidiaProvider({
@@ -35,9 +61,10 @@ function createModelRouter(config) {
       
       // Try up to 3 times with different keys
       while (attempts < 3) {
-        const keyInfo = globalKeyManager.getAvailableKey(overrideProvider || config.provider);
+        const preferredProvider = overrideProvider || config.provider;
+        const keyInfo = configuredKey(preferredProvider) || globalKeyManager.getAvailableKey(preferredProvider);
         if (!keyInfo) {
-          throw new Error("No API keys available in the KeyManager pool.");
+          throw missingKeyError(preferredProvider);
         }
         
         console.log(`[ModelRouter] Attempt ${attempts + 1}: Routing to ${keyInfo.provider} (${keyInfo.model}) via KeyManager`);

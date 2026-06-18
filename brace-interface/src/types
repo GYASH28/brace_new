@@ -1,0 +1,115 @@
+export type AgentRole =
+  | "conductor"
+  | "researcher"
+  | "builder"
+  | "reviewer"
+  | "memory_curator"
+  | "automation_operator"
+  | "creative_studio"
+  | "qa_sentinel";
+
+export type AgentStatus = "idle" | "active" | "suspended" | "hibernated" | "error";
+
+export type TaskStatus = "pending" | "running" | "blocked" | "review" | "done" | "failed";
+
+export type TaskPriority = "low" | "medium" | "high";
+
+export type MemoryType = "fact" | "rule" | "skill" | "preference" | "episodic" | "procedural";
+
+export type PageId = "home" | "swarm" | "missions" | "memory" | "tools" | "activity" | "settings";
+
+export type RiskLevel = "low" | "medium" | "high" | "critical";
+
+export interface Agent {
+  id: string;
+  name: string;
+  role: AgentRole;
+  modelProvider: string;
+  status: AgentStatus;
+  x: number;
+  y: number;
+  systemPrompt: string;
+  tools: string[];
+  permissionScope: string;
+  memoryScope: string;
+  maxSteps: number;
+  concurrency: number;
+  tokenBudget: number;
+  costBudgetUsd: number;
+  temperature: number;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignedAgentId: string;
+  projectId: string;
+  createdAt: string;
+  approvalPayload?: ApprovalPayload;
+}
+
+export interface ApprovalPayload {
+  tool: string;
+  risk: RiskLevel;
+  reversible: boolean;
+  affectedAccounts: string[];
+  args: Record<string, unknown>;
+}
+
+export interface MemoryNode {
+  id: string;
+  content: string;
+  type: MemoryType;
+  confidence: number;
+}
+
+export interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  schema: string;
+  riskLevel: RiskLevel;
+  enabled: boolean;
+}
+
+export interface AuditEvent {
+  id: string;
+  type: string;
+  actor: string;
+  payload: Record<string, unknown>;
+  timestamp: string;
+}
+
+export interface TelemetryEntry {
+  id: string;
+  agentId: string;
+  tokensProcessed: number;
+  costUsd: number;
+}
+
+export interface Message {
+  id: string;
+  taskId?: string;
+  agentId: string;
+  sender: string;
+  content: string;
+  tokensUsed: number;
+  createdAt: string;
+}
+
+export interface NavModule {
+  id: PageId;
+  label: string;
+  icon: string;
+  attention?: boolean;
+}
+
+export interface Toast {
+  id: string;
+  kind: "success" | "error" | "info";
+  title: string;
+  message: string;
+}

@@ -72,16 +72,15 @@ export const VoiceOrb = memo(function VoiceOrb({ isConnected = true, isVoiceEnab
             animate={reducedMotion ? {} : { rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             className="absolute inset-4 rounded-full border-[2px] border-[color:var(--voice-tone)] opacity-40"
-            style={{ borderStyle: "dashed", borderDasharray: "4 12" }}
+            style={{ borderStyle: "dashed" }}
           />
 
           {/* Middle Data Ring (Segmented) */}
           <motion.div
-            style={{ scale: innerRingScale }}
             animate={reducedMotion ? {} : { rotate: -360 }}
             transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
             className="absolute inset-10 rounded-full border border-[color:var(--voice-tone)] opacity-60"
-            style={{ borderStyle: "dashed", borderDasharray: "30 10 10 10" }}
+            style={{ scale: innerRingScale, borderStyle: "dashed" }}
           />
 
           {/* Inner Audio-Reactive Ring */}
