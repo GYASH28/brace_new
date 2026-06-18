@@ -4,6 +4,12 @@ import { AgentCanvas } from "../components/AgentCanvas";
 import { MissionsBoard } from "../components/MissionsBoard";
 import { TelemetrySidebar } from "../components/TelemetrySidebar";
 import { ApprovalModal } from "../components/ApprovalModal";
+import { AgentBuilder } from "../components/AgentBuilder";
+import { RunTrace } from "../components/RunTrace";
+import { GoalsView } from "../components/GoalsView";
+import { LibraryView } from "../components/LibraryView";
+import { StudioPacks } from "../components/StudioPacks";
+import { WorkflowBuilder } from "../components/WorkflowBuilder";
 import { useState } from "react";
 
 interface OsWorkspaceProps {
@@ -21,9 +27,25 @@ export function OsWorkspace({ chatPanel, onClose }: OsWorkspaceProps) {
         onClose={onClose}
         chatPanel={chatPanel}
         primaryPanel={
-          <div className="h-full flex flex-col gap-4">
-            <div className="flex-1 overflow-hidden" style={{ minHeight: '300px' }}>
-              <AgentCanvas />
+          <div className="h-full flex flex-col gap-4 overflow-y-auto pr-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex-1 overflow-hidden" style={{ minHeight: '300px' }}>
+                <AgentCanvas />
+              </div>
+              <div className="flex-1 overflow-hidden" style={{ minHeight: '300px' }}>
+                <RunTrace />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <GoalsView />
+              <LibraryView />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <StudioPacks />
+              <WorkflowBuilder />
+            </div>
+            <div className="flex-1 overflow-hidden border-t border-white/10 pt-4" style={{ minHeight: '300px' }}>
+              <AgentBuilder />
             </div>
             <div className="flex-1 overflow-hidden border-t border-white/10 pt-4" style={{ minHeight: '300px' }}>
               <MissionsBoard />

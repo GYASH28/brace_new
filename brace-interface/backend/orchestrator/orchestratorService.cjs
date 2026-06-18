@@ -65,6 +65,22 @@ class OrchestratorService {
       status: 'pending'
     };
   }
+  /**
+   * Evaluates intent and creates an execution path (DAG).
+   * Maps to Phase 8 Multi-Agent Orchestration.
+   */
+  async createDagRun(goal) {
+    console.log(`[Orchestrator] Generating DAG for goal: ${goal}`);
+    return {
+      runId: Date.now(),
+      status: 'PLANNING',
+      nodes: [
+        { id: 'node_1', agent: 'Conductor', status: 'COMPLETED' },
+        { id: 'node_2', agent: 'Researcher', status: 'QUEUED', dependsOn: ['node_1'] }
+      ]
+    };
+  }
+
 }
 
 module.exports = new OrchestratorService();

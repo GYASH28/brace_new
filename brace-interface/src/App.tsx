@@ -7,6 +7,8 @@ import { OsWorkspace } from "./os/OsWorkspace";
 import type { WorkspaceType } from "./os/WorkspaceLayout";
 import { ExecutiveBriefing } from "./os/ExecutiveBriefing";
 import { ChatBubble, ChatInput } from "./components/Interface";
+import { CommandPalette } from "./components/CommandPalette";
+import { FirstRunExperience } from "./components/FirstRunExperience";
 import { braceClient } from "./lib/braceClient";
 import type { ChatMessage, SystemInfo } from "./types";
 import { useVoiceAgent } from "./voice/useVoiceAgent";
@@ -162,6 +164,8 @@ export default function App() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden text-slate-200 font-mono">
+      <FirstRunExperience />
+      <CommandPalette />
       <div className="flex flex-1 flex-col relative z-10 w-full">
         <TopBar
           assistantStatus={assistantStatus}
