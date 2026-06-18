@@ -1,0 +1,211 @@
+{
+  "version": 2,
+  "settings": {
+    "aiProvider": "gemini",
+    "model": "gemini-2.5-flash",
+    "geminiModel": "gemini-2.5-flash",
+    "geminiFallbackModel": "gemini-2.5-flash-lite",
+    "enableLegacyLocalAi": false,
+    "apiKey": "",
+    "baseUrl": "",
+    "temperature": 0.35,
+    "maxTokens": 1200,
+    "streaming": false,
+    "localMode": false,
+    "geminiKey": "",
+    "openAiBaseUrl": "",
+    "openAiApiKey": "",
+    "openAiModel": "local-model",
+    "ollamaEndpoint": "",
+    "ollamaModel": "",
+    "customEndpoint": "",
+    "offlineMode": false,
+    "safeMode": true,
+    "voiceRate": 1,
+    "voicePitch": 1,
+    "voiceOutput": true,
+    "wakeWord": false,
+    "themeAccent": "cyan",
+    "defaultProjectsFolder": "C:\\Users\\Admin\\Documents",
+    "defaultDownloadsFolder": "C:\\Users\\Admin\\Downloads",
+    "safeFolders": [
+      "C:\\Users\\Admin\\Desktop\\projects\\B.R.A.C.E-MAIN",
+      "C:\\Users\\Admin\\Documents",
+      "C:\\Users\\Admin\\Downloads"
+    ],
+    "appPaths": {
+      "vscode": "code",
+      "chrome": "chrome"
+    },
+    "hotkeys": {
+      "openAssistant": "Ctrl+Alt+B",
+      "startVoice": "Ctrl+Alt+Space",
+      "mute": "Ctrl+Alt+M",
+      "commandPalette": "Ctrl+K"
+    },
+    "startup": false,
+    "adminMode": false,
+    "firebaseEnabled": true,
+    "obsidianEnabled": true,
+    "obsidianAutoCreate": true,
+    "ttsEnabled": true,
+    "googleTtsFallbackEnabled": false,
+    "googleTtsVoiceName": "en-US-Chirp-HD-F",
+    "startupVoiceGreeting": true
+  },
+  "permissions": {
+    "aiModel": {
+      "label": "AI model access",
+      "description": "Allows B.R.A.C.E to call the configured AI model.",
+      "riskLevel": "medium",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "microphone": {
+      "label": "Microphone",
+      "description": "Allows voice input through your microphone.",
+      "riskLevel": "medium",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "files": {
+      "label": "Local file read",
+      "description": "Allows reading files you select or approved safe folders.",
+      "riskLevel": "medium",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "fileWrite": {
+      "label": "Local file write",
+      "description": "Allows creating or editing files after approval.",
+      "riskLevel": "high",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "folders": {
+      "label": "Folder organization",
+      "description": "Allows scanning and organizing selected folders.",
+      "riskLevel": "high",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "shell": {
+      "label": "Terminal commands",
+      "description": "Allows controlled local command execution after review.",
+      "riskLevel": "high",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "appLaunch": {
+      "label": "App launching",
+      "description": "Allows opening configured apps, folders, URLs, and VS Code.",
+      "riskLevel": "medium",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "browser": {
+      "label": "Browser automation",
+      "description": "Allows controlled browser automation with visible state.",
+      "riskLevel": "high",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "coding": {
+      "label": "Coding agent edits",
+      "description": "Allows project scans, backups, diffs, and approved edits.",
+      "riskLevel": "high",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "memoryRead": {
+      "label": "Memory read",
+      "description": "Allows searching local B.R.A.C.E memory.",
+      "riskLevel": "low",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "memoryWrite": {
+      "label": "Memory write",
+      "description": "Allows saving approved memories.",
+      "riskLevel": "medium",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "voiceInput": {
+      "label": "Voice input",
+      "description": "Allows microphone input for push-to-talk.",
+      "riskLevel": "medium",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "voiceOutput": {
+      "label": "Voice output",
+      "description": "Allows local text-to-speech output.",
+      "riskLevel": "low",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "network": {
+      "label": "Network/web access",
+      "description": "Allows web requests through configured providers or tools.",
+      "riskLevel": "medium",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "mcp": {
+      "label": "MCP tools",
+      "description": "Allows configured MCP tools to appear in the tool registry.",
+      "riskLevel": "high",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "git": {
+      "label": "Git operations",
+      "description": "Allows approved git inspection and safe operations.",
+      "riskLevel": "high",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "systemInfo": {
+      "label": "System info",
+      "description": "Allows reading CPU, RAM, storage, battery, network, and OS status.",
+      "riskLevel": "low",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "notifications": {
+      "label": "Notifications",
+      "description": "Allows visible desktop notifications.",
+      "riskLevel": "low",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "startup": {
+      "label": "Startup",
+      "description": "Allows launching B.R.A.C.E when Windows starts.",
+      "riskLevel": "high",
+      "enabled": false,
+      "lastUsed": null
+    },
+    "admin": {
+      "label": "Admin-required actions",
+      "description": "Does not bypass UAC; allows only explained admin requests.",
+      "riskLevel": "high",
+      "enabled": false,
+      "lastUsed": null
+    }
+  },
+  "tasks": [],
+  "apps": [],
+  "chatHistory": [],
+  "logs": [],
+  "agentTasks": [],
+  "approvals": [],
+  "recentCommands": [],
+  "recentToolCalls": [],
+  "greetings": {
+    "lastStartupGreetingAt": null,
+    "lastStartupGreetingSessionId": null,
+    "recentGreetingHashes": []
+  }
+}
