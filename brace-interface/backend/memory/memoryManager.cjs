@@ -16,14 +16,11 @@ function createMemoryManager({ memoryDir, db }) {
   }
 
   function listMemories() {
-    const rows = db.prepare("SELECT id, type, title, content, tags, approved, created_at, updated_at FROM memories ORDER BY created_at DESC LIMIT ?").all(MAX_MEMORIES);
+    const rows = db.prepare("SELECT id, type, content, created_at, updated_at FROM memory_nodes ORDER BY created_at DESC LIMIT ?").all(MAX_MEMORIES);
     return rows.map(row => ({
       id: row.id,
       type: row.type,
-      title: row.title,
       content: row.content,
-      tags: JSON.parse(row.tags),
-      approved: Boolean(row.approved),
       createdAt: row.created_at,
       updatedAt: row.updated_at
     }));
@@ -34,7 +31,7 @@ function createMemoryManager({ memoryDir, db }) {
     const content = redactSecrets(validateContent(input.content || ""));
     
     // Check for exact duplicate content
-    const existingRow = db.prepare("SELECT id FROM memories WHERE content = ? AND type = ?").get(content, input.type);
+    const existingRow = db.prepare("SELECT id FROM memory_nodes WHERE content = ? AND type = ?").get(content, input.type);
     if (existingRow) {
       // Just fetch full to return
       return listMemories().find(m => m.id === existingRow.id);
@@ -42,8 +39,8 @@ function createMemoryManager({ memoryDir, db }) {
     
     const memory = normalizeMemory({ ...input, content });
     
-    db.prepare("INSERT INTO memories (id, type, title, content, tags, approved, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-      .run(memory.id, memory.type, memory.title, memory.content, JSON.stringify(memory.tags), memory.approved ? 1 : 0, memory.createdAt, memory.updatedAt);
+    db.prepare("INSERT INTO memory_nodes (id, type, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?)")
+      .run(memory.id, memory.type, memory.content, memory.createdAt, memory.updatedAt);
       
     return memory;
   }
@@ -53,13 +50,13 @@ function createMemoryManager({ memoryDir, db }) {
     if (terms.length === 0) return listMemories();
     const memories = listMemories();
     return memories.filter((memory) => {
-      const haystack = `${memory.title} ${memory.content} ${(memory.tags || []).join(" ")}`.toLowerCase();
+      const haystack = `${memory.content}`.toLowerCase();
       return terms.every((term) => haystack.includes(term));
     });
   }
 
   async function updateMemory(id, patch) {
-    const memory = db.prepare("SELECT * FROM memories WHERE id = ?").get(id);
+    const memory = db.prepare("SELECT * FROM memory_nodes WHERE id = ?").get(id);
     if (!memory) throw new Error("Memory not found.");
     
     const content = redactSecrets(validateContent(patch.content ?? memory.content));
@@ -67,27 +64,24 @@ function createMemoryManager({ memoryDir, db }) {
     const memObj = {
       id: memory.id,
       type: patch.type ?? memory.type,
-      title: patch.title ?? memory.title,
       content,
-      tags: patch.tags ?? JSON.parse(memory.tags),
-      approved: true,
       createdAt: memory.created_at,
       updatedAt: new Date().toISOString()
     };
     
-    db.prepare("UPDATE memories SET type = ?, title = ?, content = ?, tags = ?, approved = ?, updated_at = ? WHERE id = ?")
-      .run(memObj.type, memObj.title, memObj.content, JSON.stringify(memObj.tags), memObj.approved ? 1 : 0, memObj.updatedAt, memObj.id);
+    db.prepare("UPDATE memory_nodes SET type = ?, content = ?, updated_at = ? WHERE id = ?")
+      .run(memObj.type, memObj.content, memObj.updatedAt, memObj.id);
       
     return memObj;
   }
 
   async function deleteMemory(id) {
-    db.prepare("DELETE FROM memories WHERE id = ?").run(id);
+    db.prepare("DELETE FROM memory_nodes WHERE id = ?").run(id);
     return { ok: true };
   }
 
   function clearMemories() {
-    db.prepare("DELETE FROM memories").run();
+    db.prepare("DELETE FROM memory_nodes").run();
     return { ok: true };
   }
 

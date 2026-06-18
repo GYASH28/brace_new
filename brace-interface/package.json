@@ -36,7 +36,9 @@
     "better-sqlite3": "^12.11.1",
     "firebase-admin": "^13.10.0",
     "mammoth": "^1.12.0",
+    "node-cron": "^4.4.1",
     "pdf-parse": "^2.4.5",
+    "reactflow": "^11.11.4",
     "systeminformation": "^5.31.6"
   }
 }

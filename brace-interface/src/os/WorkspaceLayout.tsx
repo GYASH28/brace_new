@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
 
-export type WorkspaceType = "general" | "coding" | "research" | "client" | "integration";
+export type WorkspaceType = "general" | "coding" | "research" | "client" | "integration" | "os";
 
 interface WorkspaceLayoutProps {
   type: WorkspaceType;

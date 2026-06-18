@@ -3,6 +3,7 @@ import { TopBar } from "./components/Interface";
 import { VoiceOrb } from "./voice/VoiceOrb";
 import type { OrbState } from "./os/BraceOrb";
 import { CodingWorkspace, ResearchWorkspace, ClientWorkspace, IntegrationWorkspace } from "./os/workspaces";
+import { OsWorkspace } from "./os/OsWorkspace";
 import type { WorkspaceType } from "./os/WorkspaceLayout";
 import { ExecutiveBriefing } from "./os/ExecutiveBriefing";
 import { ChatBubble, ChatInput } from "./components/Interface";
@@ -69,6 +70,8 @@ export default function App() {
       setWorkspace("client");
     } else if (text.startsWith("/integration") || text.toLowerCase().includes("integration") || text.toLowerCase().includes("n8n")) {
       setWorkspace("integration");
+    } else if (text.startsWith("/os") || text.startsWith("/agents") || text.toLowerCase().includes("telemetry") || text.toLowerCase().includes("system dashboard")) {
+      setWorkspace("os");
     }
 
     setLoading(true);
@@ -215,6 +218,8 @@ export default function App() {
           <ClientWorkspace chatPanel={chatPanel} onClose={() => setWorkspace("general")} />
         ) : workspace === "integration" ? (
           <IntegrationWorkspace chatPanel={chatPanel} onClose={() => setWorkspace("general")} />
+        ) : workspace === "os" ? (
+          <OsWorkspace chatPanel={chatPanel} onClose={() => setWorkspace("general")} />
         ) : null}
       </main>
       </div>
