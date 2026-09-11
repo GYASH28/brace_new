@@ -43,7 +43,7 @@ jobs:
         run: |
           FILE="life-os-native/app/src/main/java/com/yash/lifeos/MainActivity.kt"
           sed -i 's/import android.app.AppWidgetManager/import android.appwidget.AppWidgetManager/' "$FILE"
-          sed -i 's/bottom.visibility = View.VISIBLE/bottom.setVisibility(View.VISIBLE)/' "$FILE"
+          sed -i 's/bottom.visibility = View.VISIBLE/this@MainActivity.bottom.setVisibility(View.VISIBLE)/' "$FILE"
           sed -i 's/bottom.visibility=View.GONE/bottom.setVisibility(View.GONE)/' "$FILE"
           sed -i 's/goalMs = goalMs/this.goalMs = goalMs/' "$FILE"
           grep -n 'AppWidgetManager\|setVisibility\|this.goalMs' "$FILE"
