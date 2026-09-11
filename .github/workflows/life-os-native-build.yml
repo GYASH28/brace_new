@@ -25,6 +25,9 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Rebuild project archive
+        run: cat life-os-native.b64.part-* | base64 -d > life-os-native.zip
+
       - name: Unpack Life OS project
         run: |
           rm -rf life-os-native
