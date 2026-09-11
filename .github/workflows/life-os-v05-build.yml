@@ -24,6 +24,10 @@ jobs:
           tar -xJf life-os-native-v0.5-source.tar.xz -C appsrc
           test -f appsrc/settings.gradle.kts
           test -f appsrc/app/build.gradle.kts
+      - name: Apply v0.5 compile fix
+        run: |
+          sed -i 's/Settings.ACTION_ZEN_MODE_SETTINGS/Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS/g' appsrc/app/src/main/java/com/yash/lifeos/MainActivity.kt
+          ! grep -R "ACTION_ZEN_MODE_SETTINGS" appsrc/app/src/main/java
       - name: Build APK
         working-directory: appsrc
         run: gradle :app:assembleDebug --stacktrace --no-daemon
