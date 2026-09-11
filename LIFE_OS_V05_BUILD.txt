@@ -1,0 +1,1 @@
+v0.5: native Android Life OS with Widget Studio, real UsageStats screen time, reconfigurable Today/Next/Focus/Screen Time widgets, direct widget actions, lighter motion, Now/Today/Shutdown UX, and older-phone performance constraints.
