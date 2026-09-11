@@ -1,14 +1,10 @@
-name: Build Life OS Native APK
+name: Build Life OS v0.4 Chunks APK
 
 on:
   push:
     branches:
-      - life-os-native-build
+      - life-os-native-v04-chunks
   workflow_dispatch:
-
-concurrency:
-  group: life-os-native-apk
-  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -16,7 +12,7 @@ permissions:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,28 +28,31 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Restore Life OS v0.4 source
+      - name: Reconstruct and verify native source
         run: |
+          cat payload/life-os-v04.part-00 payload/life-os-v04.part-01 payload/life-os-v04.part-02 > /tmp/life-os-v04.tar.xz
+          echo "2a4ed5ecb9fde02be10646d6f395a3848f10baa77f20acc62b6a3eb1e97eb1b8  /tmp/life-os-v04.tar.xz" | sha256sum -c -
+          xz -t /tmp/life-os-v04.tar.xz
           rm -rf life-os-native
           mkdir life-os-native
-          tar -xJf life-os-native-v0.4-source.tar.xz -C life-os-native
+          tar -xJf /tmp/life-os-v04.tar.xz -C life-os-native
           test -f life-os-native/settings.gradle.kts
           test -f life-os-native/app/build.gradle.kts
 
-      - name: Build installable debug APK
+      - name: Build installable APK
         working-directory: life-os-native
         run: gradle :app:assembleDebug --stacktrace --no-daemon
 
-      - name: Verify APK
+      - name: Verify and collect APK
         run: |
           test -s life-os-native/app/build/outputs/apk/debug/app-debug.apk
           cp life-os-native/app/build/outputs/apk/debug/app-debug.apk LifeOS-v0.4.apk
           ls -lh LifeOS-v0.4.apk
 
-      - name: Upload installable APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: LifeOS-v0.4-Native-APK
+          name: LifeOS-v0.4-APK
           path: LifeOS-v0.4.apk
           if-no-files-found: error
           retention-days: 7
