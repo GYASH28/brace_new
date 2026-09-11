@@ -6,10 +6,6 @@ on:
       - life-os-native-build
   workflow_dispatch:
 
-concurrency:
-  group: life-os-native-apk
-  cancel-in-progress: true
-
 permissions:
   contents: read
 
@@ -32,28 +28,48 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Restore Life OS v0.4 source
+      - name: Rebuild verified Life OS v0.4 archive
+        shell: bash
         run: |
-          rm -rf life-os-native
-          mkdir life-os-native
-          tar -xJf life-os-native-v0.4-source.tar.xz -C life-os-native
+          set -euo pipefail
+          cat \
+            life-os-native.b64.part-00 \
+            life-os-native.b64.part-01 \
+            life-os-native.b64.part-02 \
+            life-os-v04-final-00 \
+            life-os-v04-final-01 \
+            life-os-v04-final-02 \
+            life-os-v04-final-03 \
+            life-os-v04-final-04-05 \
+            | base64 -d > /tmp/life-os-v0.4.zip
+          unzip -t /tmp/life-os-v0.4.zip
+
+      - name: Unpack project
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf life-os-native unpacked
+          mkdir unpacked
+          unzip -q /tmp/life-os-v0.4.zip -d unpacked
+          src="$(find unpacked -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          test -n "$src"
+          mv "$src" life-os-native
           test -f life-os-native/settings.gradle.kts
           test -f life-os-native/app/build.gradle.kts
 
-      - name: Build installable debug APK
+      - name: Build debug APK
         working-directory: life-os-native
         run: gradle :app:assembleDebug --stacktrace --no-daemon
 
-      - name: Verify APK
+      - name: Collect APK
         run: |
-          test -s life-os-native/app/build/outputs/apk/debug/app-debug.apk
           cp life-os-native/app/build/outputs/apk/debug/app-debug.apk LifeOS-v0.4.apk
           ls -lh LifeOS-v0.4.apk
 
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: LifeOS-v0.4-Native-APK
+          name: LifeOS-v0.4-APK
           path: LifeOS-v0.4.apk
           if-no-files-found: error
           retention-days: 7
