@@ -1,0 +1,46 @@
+name: Build Life OS Native APK
+
+on:
+  push:
+    branches:
+      - life-os-native-build
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Unpack Life OS project
+        run: |
+          rm -rf life-os-native
+          mkdir life-os-native
+          unzip -q life-os-native.zip -d life-os-native
+          mv life-os-native/life-os-native-android/* life-os-native/
+          rmdir life-os-native/life-os-native-android
+
+      - name: Build debug APK
+        working-directory: life-os-native
+        run: gradle :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LifeOS-Native-APK
+          path: life-os-native/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
