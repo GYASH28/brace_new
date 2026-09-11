@@ -57,6 +57,16 @@ jobs:
           test -f life-os-native/settings.gradle.kts
           test -f life-os-native/app/build.gradle.kts
 
+      - name: Apply Kotlin compile fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          f="life-os-native/app/src/main/java/com/yash/lifeos/MainActivity.kt"
+          sed -i 's/import android\.app\.AppWidgetManager/import android.appwidget.AppWidgetManager/' "$f"
+          sed -i 's/repo\.setOnboarded(true); bottom\.visibility = View\.VISIBLE/repo.setOnboarded(true); this@MainActivity.bottom.visibility = View.VISIBLE/' "$f"
+          sed -i 's/totalMs = snapshot?\.totalMs ?: 0; distractionMs = snapshot?\.distractionMs ?: 0; goalMs = goalMs/totalMs = snapshot?.totalMs ?: 0; distractionMs = snapshot?.distractionMs ?: 0; this.goalMs = goalMs/' "$f"
+          grep -n 'appwidget.AppWidgetManager\|this@MainActivity.bottom.visibility\|this.goalMs = goalMs' "$f"
+
       - name: Build debug APK
         working-directory: life-os-native
         run: gradle :app:assembleDebug --stacktrace --no-daemon
