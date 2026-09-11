@@ -1,14 +1,10 @@
-name: Build Life OS Native APK
+name: Build Life OS v0.4 Final APK
 
 on:
   push:
     branches:
-      - life-os-native-build
+      - life-os-native-v04-final
   workflow_dispatch:
-
-concurrency:
-  group: life-os-native-apk
-  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -32,7 +28,7 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Restore Life OS v0.4 source
+      - name: Restore native source
         run: |
           rm -rf life-os-native
           mkdir life-os-native
@@ -40,20 +36,20 @@ jobs:
           test -f life-os-native/settings.gradle.kts
           test -f life-os-native/app/build.gradle.kts
 
-      - name: Build installable debug APK
+      - name: Build APK
         working-directory: life-os-native
         run: gradle :app:assembleDebug --stacktrace --no-daemon
 
-      - name: Verify APK
+      - name: Collect APK
         run: |
           test -s life-os-native/app/build/outputs/apk/debug/app-debug.apk
           cp life-os-native/app/build/outputs/apk/debug/app-debug.apk LifeOS-v0.4.apk
           ls -lh LifeOS-v0.4.apk
 
-      - name: Upload installable APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: LifeOS-v0.4-Native-APK
+          name: LifeOS-v0.4-APK
           path: LifeOS-v0.4.apk
           if-no-files-found: error
           retention-days: 7
