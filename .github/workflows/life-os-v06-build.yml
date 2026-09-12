@@ -1,0 +1,65 @@
+name: Build Life OS v0.6 APK
+
+on:
+  push:
+    branches:
+      - life-os-native-v06-final
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+          cache-read-only: true
+
+      - name: Restore verified v0.6 source
+        shell: bash
+        run: |
+          cat v06.part00 v06.part01 v06.part02 v06.part03 v06.part04 > LifeOS-v0.6-source.tar.xz
+          echo "a4c92f23941e15482f7eb6633ed7ff1e15cb5319688309ca5d1ab750385533ff  LifeOS-v0.6-source.tar.xz" | sha256sum -c -
+          mkdir appsrc
+          tar -xJf LifeOS-v0.6-source.tar.xz -C appsrc
+          test -f appsrc/settings.gradle.kts
+          test -f appsrc/app/build.gradle.kts
+
+      - name: Apply Android 8-9 Quick Settings compatibility patch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('appsrc/app/src/main/java/com/yash/lifeos/QuickTiles.kt')
+          s=p.read_text()
+          s=s.replace('subtitle=if(active)LifeRepository(this@FocusTileService).focusLabel() else "${LifeRepository(this@FocusTileService).focusDefaultMin()} min";', 'if(Build.VERSION.SDK_INT>=29) subtitle=if(active)LifeRepository(this@FocusTileService).focusLabel() else "${LifeRepository(this@FocusTileService).focusDefaultMin()} min";')
+          s=s.replace('subtitle="Add a task";', 'if(Build.VERSION.SDK_INT>=29) subtitle="Add a task";')
+          p.write_text(s)
+          PY
+
+      - name: Build APK
+        working-directory: appsrc
+        run: gradle :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          test -f appsrc/app/build/outputs/apk/debug/app-debug.apk
+          unzip -t appsrc/app/build/outputs/apk/debug/app-debug.apk
+          cp appsrc/app/build/outputs/apk/debug/app-debug.apk LifeOS-Native-v0.6.apk
+          sha256sum LifeOS-Native-v0.6.apk
+          ls -lh LifeOS-Native-v0.6.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LifeOS-Native-v0.6-APK
+          path: LifeOS-Native-v0.6.apk
+          retention-days: 30
