@@ -1,0 +1,33 @@
+name: Export Life OS v0.5 Source
+
+on:
+  push:
+    branches:
+      - life-os-native-v05-final2
+
+permissions:
+  contents: read
+
+jobs:
+  export-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore source
+        shell: bash
+        run: |
+          cat life-os-v05-part-00 life-os-v05-part-01 life-os-v05-part-02 life-os-v05-part-03 life-os-v05-part-04 > life-os-native-v0.5-source.tar.xz
+          echo "58c55041205b0f854f3a32e43ef8a5884bc4ee682e2b1cd3ca517834c3acccff  life-os-native-v0.5-source.tar.xz" | sha256sum -c -
+          mkdir appsrc
+          tar -xJf life-os-native-v0.5-source.tar.xz -C appsrc
+          test -f appsrc/settings.gradle.kts
+          test -f appsrc/app/build.gradle.kts
+      - name: Package source
+        run: |
+          cd appsrc
+          zip -r ../LifeOS-v0.5-source.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LifeOS-v0.5-source
+          path: LifeOS-v0.5-source.zip
+          if-no-files-found: error
