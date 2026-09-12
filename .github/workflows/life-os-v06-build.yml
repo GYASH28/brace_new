@@ -32,16 +32,41 @@ jobs:
           test -f appsrc/settings.gradle.kts
           test -f appsrc/app/build.gradle.kts
 
-      - name: Apply Android 8-9 Quick Settings compatibility patch
+      - name: Apply Android compatibility patches
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
+
+          # Android 8-9 Quick Settings: Tile.subtitle is API 29+.
           p=Path('appsrc/app/src/main/java/com/yash/lifeos/QuickTiles.kt')
           s=p.read_text()
           s=s.replace('subtitle=if(active)LifeRepository(this@FocusTileService).focusLabel() else "${LifeRepository(this@FocusTileService).focusDefaultMin()} min";', 'if(Build.VERSION.SDK_INT>=29) subtitle=if(active)LifeRepository(this@FocusTileService).focusLabel() else "${LifeRepository(this@FocusTileService).focusDefaultMin()} min";')
           s=s.replace('subtitle="Add a task";', 'if(Build.VERSION.SDK_INT>=29) subtitle="Add a task";')
           p.write_text(s)
+
+          # Android shortcuts require string resource references for labels.
+          xp=Path('appsrc/app/src/main/res/xml/shortcuts.xml')
+          x=xp.read_text()
+          replacements={
+            'android:shortcutShortLabel="Today"':'android:shortcutShortLabel="@string/shortcut_today_short"',
+            'android:shortcutLongLabel="Open Life OS Today"':'android:shortcutLongLabel="@string/shortcut_today_long"',
+            'android:shortcutShortLabel="Add task"':'android:shortcutShortLabel="@string/shortcut_add_short"',
+            'android:shortcutLongLabel="Quick capture a task"':'android:shortcutLongLabel="@string/shortcut_add_long"',
+            'android:shortcutShortLabel="Focus"':'android:shortcutShortLabel="@string/shortcut_focus_short"',
+            'android:shortcutLongLabel="Start a focus session"':'android:shortcutLongLabel="@string/shortcut_focus_long"',
+            'android:shortcutShortLabel="Minimum day"':'android:shortcutShortLabel="@string/shortcut_minimum_short"',
+            'android:shortcutLongLabel="Switch Life OS to minimum day"':'android:shortcutLongLabel="@string/shortcut_minimum_long"',
+          }
+          for a,b in replacements.items(): x=x.replace(a,b)
+          xp.write_text(x)
+
+          sp=Path('appsrc/app/src/main/res/values/strings.xml')
+          st=sp.read_text()
+          if 'shortcut_today_short' not in st:
+            extra='''\n    <string name="shortcut_today_short">Today</string>\n    <string name="shortcut_today_long">Open Life OS Today</string>\n    <string name="shortcut_add_short">Add task</string>\n    <string name="shortcut_add_long">Quick capture a task</string>\n    <string name="shortcut_focus_short">Focus</string>\n    <string name="shortcut_focus_long">Start a focus session</string>\n    <string name="shortcut_minimum_short">Minimum day</string>\n    <string name="shortcut_minimum_long">Switch Life OS to minimum day</string>\n'''
+            st=st.replace('</resources>', extra+'</resources>')
+            sp.write_text(st)
           PY
 
       - name: Build APK
