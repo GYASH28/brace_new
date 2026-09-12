@@ -75,7 +75,8 @@ jobs:
       - name: Verify and apply v0.7 upgrade
         shell: bash
         run: |
-          base64 -d v07.patch.gz.b64 > v07.patch.gz
+          cat v07b64.part00 v07b64.part01 v07b64.part02 v07b64.part03 v07b64.part04 > v07patch.full.b64
+          base64 -d v07patch.full.b64 > v07.patch.gz
           echo "c71039723ab9381d96854367abb19e35ef1caaf9075a5dd36cf8f685961b4726  v07.patch.gz" | sha256sum -c -
           gunzip -c v07.patch.gz > v07.patch
           cd appsrc
