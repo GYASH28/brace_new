@@ -45,6 +45,11 @@ jobs:
           s=s.replace('subtitle="Add a task";', 'if(Build.VERSION.SDK_INT>=29) subtitle="Add a task";')
           p.write_text(s)
 
+          # Use the supported Android DND / notification policy settings action.
+          mp=Path('appsrc/app/src/main/java/com/yash/lifeos/MainActivity.kt')
+          ms=mp.read_text().replace('Settings.ACTION_ZEN_MODE_SETTINGS', 'Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS')
+          mp.write_text(ms)
+
           # Android shortcuts require string resource references for labels.
           xp=Path('appsrc/app/src/main/res/xml/shortcuts.xml')
           x=xp.read_text()
